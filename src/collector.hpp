@@ -48,7 +48,7 @@ class Collector {
     map<string, int> trackers;
     vector<lt::add_torrent_params> torrents;
 
-    void _handle_alerts(lt::session *s, deque<lt::alert*>& alerts);
+    void _handle_alerts(lt::session *s, vector<lt::alert*>& alerts);
     void _add_torrent(lt::session* s, const lt::sha1_hash& info_hash);
 
     void _summarize_statistics();

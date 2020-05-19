@@ -1,12 +1,22 @@
 #include "collector.hpp"
 
+#include <libtorrent/hex.hpp>
+#include <libtorrent/time.hpp>
+#include <libtorrent/torrent_info.hpp>
+#include <libtorrent/session_status.hpp>
+
+#include <iostream>
+using std::cout;
+using std::endl;
+
 void Collector::start_session() {
   load_torrents();
   for (int port = session_start_port; port < session_start_port+session_number; ++port) {
     lt::session* s = new lt::session();
 
     s->set_alert_mask(lt::alert::all_categories);
-    s->listen_on(make_pair(port, port));
+    lt::error_code ec;
+    s->listen_on(make_pair(port, port), ec);
 
     for (auto it = trackers.begin(); it != trackers.end(); ++it) {
       s->add_dht_router(make_pair(it->first, it->second));
@@ -16,7 +26,7 @@ void Collector::start_session() {
     s->add_dht_router(make_pair("router.bitcomet.com", 6881));
     s->add_dht_router(make_pair("dht.transmissionbt.com", 6881));
 
-    lt::session_settings st(s->settings());
+//    lt::session_settings st(s->settings());
     // configure settings.
     
     for (auto t : torrents) {
@@ -27,21 +37,24 @@ void Collector::start_session() {
 }
 
 void Collector::start_work() {
-  lt::ptime end_time = lt::time_now() + lt::seconds(session_interval);
-  lt::ptime save_time = lt::time_now() + lt::seconds(save_interval);
+  /*
+  const auto end_time = lt::aux::time_now() + lt::seconds(session_interval);
+  const auto save_time = lt::aux::time_now() + lt::seconds(save_interval);
+  */
 
   while (1) {
-    if (lt::is_negative(end_time - lt::time_now())) break;
-    if (lt::is_negative(save_time - lt::time_now())) {
+    /*
+    if ((end_time - lt::aux::time_now()).count < 0) break;
+    if ((save_time - lt::aux::time_now()).count < 0) {
       _summarize_statistics();
-      save_time = lt::time_now() + lt::seconds(save_interval);
+      save_time = lt::aux::time_now() + lt::aux::seconds(save_interval);
     }
-
+*/
     _print_statistics();
     for (lt::session* s : sessions) {
       s->post_torrent_updates();
 
-      deque<lt::alert*> alerts;
+      vector<lt::alert*> alerts;
       s->pop_alerts(&alerts);
       _handle_alerts(s, alerts);
     }
@@ -89,7 +102,7 @@ void Collector::load_torrents() {
 }
 
 
-void Collector::_handle_alerts(lt::session *s, deque<lt::alert*>& alerts) {
+void Collector::_handle_alerts(lt::session *s, vector<lt::alert*>& alerts) {
   for (lt::alert* alt : alerts) {
     switch (alt->type()) {
       case lt::add_torrent_alert::alert_type:

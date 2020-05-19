@@ -1,5 +1,6 @@
 #include "client.hpp"
-
+#include <iostream>
+using namespace std;
 
 static std::unique_ptr<Collector> createCollector(const string& config_file) {
   fs::path path(config_file);
@@ -14,7 +15,7 @@ static std::unique_ptr<Collector> createCollector(const string& config_file) {
   auto collector = unique_ptr<Collector>(new Collector());
 
   if (config.find("settings") == config.not_found()) {
-    return move(collector);
+    return collector;
   } else {
     config = config.get_child("settings");
   }
@@ -45,9 +46,8 @@ static std::unique_ptr<Collector> createCollector(const string& config_file) {
     collector->set_save_interval(config.get<int>("save_interval"));
   }
 
-  return move(collector);
+  return collector;
 }
-
 
 int main(int argc, char* argv[]) {
   if (argc < 2) {

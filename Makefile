@@ -1,6 +1,6 @@
 CC = g++
 
-CC_FLAGS:= -Wall -O3 -std=c++11
+CC_FLAGS:= -Wall -O3 -std=c++11 -Wfatal-errors `pkg-config --cflags libtorrent-rasterbar` 
 LD_FLAGS:= -lboost_filesystem -lboost_regex `pkg-config --libs libtorrent-rasterbar` 
 
 
